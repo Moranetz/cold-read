@@ -12,10 +12,11 @@ research engine's vocabulary and the outbound-sales surface.
 from __future__ import annotations
 import os, sys
 
+# The Persuasion-Max engine is vendored unmodified at ./core (see core/PROVENANCE.md).
+# Co-located under /api so Vercel's import tracer bundles it into the function.
 _HERE = os.path.dirname(os.path.abspath(__file__))
-_ENGINE = os.path.normpath(os.path.join(_HERE, "..", "engine"))
-if _ENGINE not in sys.path:
-    sys.path.insert(0, _ENGINE)
+if _HERE not in sys.path:
+    sys.path.insert(0, _HERE)
 
 from core.limbic_cascade import LimbicCascade            # noqa: E402
 from core.appraisal_extractor import AppraisalExtractor  # noqa: E402
