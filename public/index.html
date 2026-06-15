@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Cold Read — read the buyer before you hit send</title>
+<meta name="description" content="Paste a cold email. See how five buyer archetypes are predicted to respond, which persuasion mechanics the copy fires, and the one change that moves the most replies. Offline, deterministic, built on the Persuasion-Max engine.">
+<style>
+  :root{
+    --bg:#0E0F13; --ink:#F4F1EA;
+    --ink56:rgba(244,241,234,.56); --ink34:rgba(244,241,234,.34); --ink20:rgba(244,241,234,.20);
+    --accent:#E0B36A; --accent-dim:rgba(224,179,106,.16);
+    --hair:rgba(255,255,255,.07); --hair2:rgba(255,255,255,.045);
+    --sans:-apple-system,BlinkMacSystemFont,'SF Pro Display',system-ui,sans-serif;
+    --mono:ui-monospace,'SF Mono','JetBrains Mono',Menlo,monospace;
+    --shadow:0 1px 2px hsl(28 35% 4%/.30), 0 4px 10px hsl(28 30% 3%/.34), 0 12px 30px hsl(28 30% 2%/.30);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    font-family:var(--sans); background:var(--bg); color:var(--ink);
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    min-height:100vh; line-height:1.5; overflow-x:hidden; position:relative;
+  }
+  /* layered radial light — poor-man's mesh, hard-desaturated */
+  body::before{
+    content:""; position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      radial-gradient(60% 50% at 18% 8%, rgba(224,179,106,.07), transparent 60%),
+      radial-gradient(55% 45% at 92% 18%, rgba(115,151,217,.06), transparent 62%),
+      radial-gradient(70% 60% at 50% 108%, rgba(207,112,109,.05), transparent 60%);
+  }
+  /* film grain */
+  .grain{position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.05; mix-blend-mode:overlay}
+  .wrap{position:relative; z-index:2; max-width:760px; margin:0 auto; padding:54px 22px 90px}
+
+  /* header */
+  .eyebrow{font:700 11.5px/1 var(--mono); letter-spacing:.26em; text-transform:uppercase; color:var(--accent)}
+  h1{margin:16px 0 0; font-size:30px; font-weight:300; letter-spacing:-.02em; line-height:1.12; max-width:18ch}
+  h1 b{font-weight:600}
+  .lede{margin-top:12px; color:var(--ink56); font-size:15px; max-width:52ch}
+  .byline{margin-top:14px; font:500 12.5px/1.5 var(--sans); color:var(--ink34)}
+  .byline a{color:var(--ink56); text-decoration:none; border-bottom:1px solid var(--ink20)}
+  .byline a:hover{color:var(--ink)}
+
+  /* surface */
+  .surface{
+    background:linear-gradient(180deg,#1D1F26,#16171C);
+    border:.5px solid var(--hair); border-radius:18px;
+    box-shadow:var(--shadow), inset 0 .5px 0 rgba(255,255,255,.13);
+  }
+  .composer{margin-top:30px; padding:18px}
+  textarea{
+    width:100%; min-height:118px; resize:vertical; border:0; outline:0; background:transparent;
+    color:var(--ink); font-family:var(--sans); font-size:15.5px; line-height:1.55; letter-spacing:-.003em;
+  }
+  textarea::placeholder{color:var(--ink34)}
+  .composer-bar{display:flex; align-items:center; gap:12px; margin-top:14px; flex-wrap:wrap}
+  .examples{display:flex; gap:7px; margin-right:auto; flex-wrap:wrap}
+  .chip{
+    font:600 11.5px/1 var(--sans); letter-spacing:.01em; color:var(--ink56);
+    background:rgba(255,255,255,.04); border:.5px solid var(--hair2); border-radius:999px;
+    padding:7px 12px; cursor:pointer; transition:color .18s, border-color .18s, background .18s;
+  }
+  .chip:hover{color:var(--ink); border-color:var(--hair)}
+  .go{
+    font:600 14px/1 var(--sans); letter-spacing:.01em; color:#15120B; cursor:pointer;
+    background:linear-gradient(180deg,#ECC684,var(--accent)); border:0; border-radius:11px;
+    padding:12px 20px; box-shadow:0 1px 0 rgba(255,255,255,.3) inset, 0 4px 12px rgba(224,179,106,.22);
+    transition:transform .12s cubic-bezier(.34,1.56,.64,1), filter .18s; display:inline-flex; align-items:center; gap:8px;
+  }
+  .go:hover{filter:brightness(1.04)}
+  .go:active{transform:scale(.955)}
+  .go .arw{transition:transform .2s}
+  .go:hover .arw{transform:translateX(3px)}
+
+  /* results */
+  #results{margin-top:14px}
+  .reveal{opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s cubic-bezier(.22,.7,.3,1)}
+  .reveal.in{opacity:1; transform:none}
+
+  .readouts{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px}
+  .ro{padding:16px 16px 15px}
+  .ro .k{font:700 10px/1 var(--mono); letter-spacing:.18em; text-transform:uppercase; color:var(--ink34)}
+  .ro .v{margin-top:11px; font-size:34px; font-weight:200; letter-spacing:-.035em; font-variant-numeric:tabular-nums}
+  .ro .v .u{font-size:16px; font-weight:300; color:var(--ink56); margin-left:1px}
+  .ro .s{margin-top:5px; font-size:12px; color:var(--ink56)}
+  .ro.accent .v{color:var(--accent)}
+
+  .block{margin-top:14px; padding:20px}
+  .block-h{display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:4px}
+  .block-h .t{font-size:13px; font-weight:600; letter-spacing:-.01em}
+  .block-h .n{font:600 11px/1 var(--mono); letter-spacing:.05em; color:var(--ink34); text-transform:uppercase}
+  .block-sub{font-size:12.5px; color:var(--ink56); margin-bottom:16px; max-width:54ch}
+
+  /* buyer rows — the hero */
+  .buyer{padding:13px 0; border-top:.5px solid var(--hair2)}
+  .buyer:first-of-type{border-top:0}
+  .buyer-top{display:flex; align-items:baseline; justify-content:space-between; gap:14px}
+  .buyer-name{font-size:14.5px; font-weight:560; letter-spacing:-.01em}
+  .buyer-role{font-size:11.5px; color:var(--ink34); margin-top:2px}
+  .buyer-pct{font-size:20px; font-weight:200; letter-spacing:-.03em; font-variant-numeric:tabular-nums; white-space:nowrap}
+  .track{position:relative; height:5px; border-radius:3px; background:rgba(255,255,255,.06); margin-top:11px; overflow:hidden}
+  .fill{position:absolute; inset:0 100% 0 0; border-radius:3px;
+    background:linear-gradient(90deg, rgba(224,179,106,.5), var(--accent));
+    transition:right 1.05s cubic-bezier(.2,.7,.2,1)}
+  .buyer.lead .buyer-name{color:var(--accent)}
+  .buyer.lead .fill{background:linear-gradient(90deg,#C9A05E,#F1CE8C)}
+  .buyer-meta{display:flex; gap:14px; margin-top:8px; font-size:11px; color:var(--ink34)}
+  .buyer-meta b{color:var(--ink56); font-weight:600; font-variant-numeric:tabular-nums}
+  .risk-hi b{color:var(--terra,#D2867F)}
+
+  /* mechanics */
+  .mech{display:flex; align-items:center; gap:12px; padding:10px 0; border-top:.5px solid var(--hair2)}
+  .mech:first-of-type{border-top:0}
+  .mech-bar{width:42px; height:4px; border-radius:2px; background:rgba(255,255,255,.07); position:relative; flex:none}
+  .mech-bar i{position:absolute; inset:0; border-radius:2px; background:var(--accent); transform-origin:left; transform:scaleX(0); transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+  .mech-name{font-size:13.5px; font-weight:500}
+  .mech-cat{margin-left:auto; font:600 10px/1 var(--mono); letter-spacing:.12em; text-transform:uppercase; color:var(--ink34)}
+  .mech-empty{font-size:13px; color:var(--ink56); padding:6px 0}
+
+  /* fix */
+  .fix{display:flex; align-items:center; gap:16px}
+  .fix-delta{font-size:30px; font-weight:200; letter-spacing:-.035em; color:var(--accent); font-variant-numeric:tabular-nums; white-space:nowrap}
+  .fix-body{font-size:14px; color:var(--ink); line-height:1.5}
+  .fix-body .dim{color:var(--accent); font-weight:600}
+  .fix-body .ar{color:var(--ink34); font-family:var(--mono); font-size:12px}
+
+  .foot{margin-top:24px; font-size:11.5px; line-height:1.6; color:var(--ink34); max-width:60ch}
+  .foot a{color:var(--ink56); text-decoration:none; border-bottom:1px solid var(--ink20)}
+  .foot a:hover{color:var(--ink)}
+  .spinner{display:inline-block; width:13px; height:13px; border:2px solid rgba(21,18,11,.3); border-top-color:#15120B; border-radius:50%; animation:spin .6s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  @media(max-width:560px){
+    h1{font-size:25px} .readouts{grid-template-columns:1fr 1fr} .ro:last-child{grid-column:1/-1}
+    .wrap{padding:40px 18px 70px}
+  }
+</style>
+</head>
+<body>
+<svg class="grain"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.82" numOctaves="2" stitchTiles="stitch"/><feColorMatrix type="saturate" values="0"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>
+
+<main class="wrap">
+  <div class="eyebrow">Cold Read</div>
+  <h1>Read the <b>buyer</b>, not just the <b>email</b>.</h1>
+  <p class="lede">Most outbound tools personalize the merge fields. This one scores the persuasion mechanics — paste a cold message and see how five buyer archetypes are predicted to react before you hit send.</p>
+  <p class="byline">An instrument by Marion Moranetz · built on the <a href="https://github.com/Moranetz/Persuasion-Max" target="_blank" rel="noopener">Persuasion-Max</a> engine — offline &amp; deterministic.</p>
+
+  <section class="surface composer">
+    <textarea id="msg" spellcheck="false" placeholder="Paste your cold email or LinkedIn opener…"></textarea>
+    <div class="composer-bar">
+      <div class="examples">
+        <button class="chip" data-ex="strong">Tight example</button>
+        <button class="chip" data-ex="weak">Spray-and-pray example</button>
+      </div>
+      <button class="go" id="run"><span class="lbl">Read the room</span><span class="arw">→</span></button>
+    </div>
+  </section>
+
+  <section id="results"></section>
+
+  <p class="foot" id="foot" style="display:none">
+    Predictions are <b style="color:var(--ink56);font-weight:600">model-internal and directional</b> — the engine scores how a message maps to each archetype's appraisal profile, offline and deterministically. It is not a guarantee of real reply rates. Method, weights, and calibration: <a href="https://github.com/Moranetz/Persuasion-Max" target="_blank" rel="noopener">Persuasion-Max</a>.
+  </p>
+</main>
+
+<script>
+const EX = {
+  strong: "Hi Sarah — saw Acme just closed your Series B, congrats. Most RevOps teams at that stage are still stitching the forecast together by hand every Friday. We cut that to one dashboard your reps actually trust. Worth 15 minutes Thursday to see if it'd hold up against your numbers?",
+  weak: "Hi there, I wanted to reach out because we're an industry-leading platform that helps companies like yours unlock synergies and supercharge growth. We work with many businesses in your space. Would you be open to a quick call this week to explore how we might be able to partner together and take things to the next level?"
+};
+const $ = s => document.querySelector(s);
+const msg = $('#msg');
+msg.value = EX.strong;
+
+document.querySelectorAll('.chip').forEach(c =>
+  c.onclick = () => { msg.value = EX[c.dataset.ex]; msg.focus(); });
+
+function rollNum(el, to, suffix='', dur=620){
+  const start = performance.now(), from = 0;
+  function step(t){
+    const p = Math.min(1, (t-start)/dur), e = 1-Math.pow(1-p,3);
+    el.firstChild ? el.firstChild.nodeValue = (from+(to-from)*e).toFixed(to%1?1:0)
+                  : el.textContent = (from+(to-from)*e).toFixed(to%1?1:0);
+    if(p<1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+async function run(){
+  const text = msg.value.trim();
+  if(!text) return;
+  const btn = $('#run'), lbl = btn.querySelector('.lbl');
+  btn.disabled = true; lbl.innerHTML = '<span class="spinner"></span>';
+  try{
+    const r = await fetch('/api/score', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text})});
+    const d = await r.json();
+    if(!d.ok){ throw new Error(d.error||'failed'); }
+    render(d);
+  }catch(e){
+    $('#results').innerHTML = `<div class="surface block reveal in" style="color:var(--ink56)">Couldn't reach the engine: ${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled = false; lbl.textContent = 'Read the room';
+  }
+}
+
+function render(d){
+  const buyers = d.buyers.map((b,i) => {
+    const hiRisk = (b.annoyance_risk||0) >= 8;
+    return `<div class="buyer ${i===0?'lead':''}">
+      <div class="buyer-top">
+        <div><div class="buyer-name">${esc(b.name)}</div><div class="buyer-role">${esc(b.role)}</div></div>
+        <div class="buyer-pct" data-pct="${b.reply_likelihood}">0<span class="u">%</span></div>
+      </div>
+      <div class="track"><div class="fill" data-w="${b.reply_likelihood}"></div></div>
+      <div class="buyer-meta">
+        <span>follow-up receptive <b>${b.followup_receptive}%</b></span>
+        <span class="${hiRisk?'risk-hi':''}">annoyance risk <b>${b.annoyance_risk}%</b></span>
+      </div>
+    </div>`;
+  }).join('');
+
+  const mech = d.mechanics.length
+    ? d.mechanics.slice(0,7).map(m => `<div class="mech">
+        <span class="mech-bar"><i data-s="${Math.min(1,m.score/100)}"></i></span>
+        <span class="mech-name">${esc(m.name)}</span>
+        <span class="mech-cat">${esc(m.category)} · ${esc(m.intensity)}</span></div>`).join('')
+    : `<div class="mech-empty">No clear persuasion mechanics firing — the message reads as flat information.</div>`;
+
+  const fix = d.fix ? `<div class="fix">
+      <div class="fix-delta">+${d.fix.delta_reply}<span style="font-size:15px"> pts</span></div>
+      <div class="fix-body"><b>${esc(d.fix.direction)==='increase'?'Raise':'Lower'}</b> the message's
+        <span class="dim">${esc(d.fix.dimension_label)}</span> and the lead buyer's predicted reply moves up.
+        <span class="ar">${esc(d.fix.dimension)} ${d.fix.from}→${d.fix.to}</span></div>
+    </div>` : '';
+
+  $('#results').innerHTML = `
+    <div class="readouts">
+      <div class="surface ro reveal"><div class="k">Reply spread</div><div class="v"><span class="rn" data-pct="${d.spread}">0</span><span class="u">pts</span></div><div class="s">gap between your best- and worst-fit buyer</div></div>
+      <div class="surface ro accent reveal"><div class="k">Lead buyer</div><div class="v" style="font-size:19px;font-weight:400;letter-spacing:-.01em">${esc(d.buyers[0].name)}</div><div class="s">${d.buyers[0].reply_likelihood}% predicted reply</div></div>
+      <div class="surface ro reveal"><div class="k">Weakest lever</div><div class="v" style="font-size:18px;font-weight:400;letter-spacing:-.01em;text-transform:capitalize">${esc(d.weakest||'—')}</div><div class="s">where the copy gives up the most reply</div></div>
+    </div>
+    <div class="surface block reveal">
+      <div class="block-h"><span class="t">How five buyers read the same message</span><span class="n">predicted reply</span></div>
+      <div class="block-sub">One email. Five appraisal profiles. Where the bars diverge is where targeting beats volume.</div>
+      ${buyers}
+    </div>
+    <div class="surface block reveal">
+      <div class="block-h"><span class="t">What the copy is actually doing</span><span class="n">mechanics</span></div>
+      ${mech}
+    </div>
+    ${fix ? `<div class="surface block reveal">
+      <div class="block-h"><span class="t">Highest-leverage change</span><span class="n">one move</span></div>
+      ${fix}</div>`:''}
+  `;
+  $('#foot').style.display = 'block';
+  animateIn();
+}
+
+function animateIn(){
+  const items = [...document.querySelectorAll('#results .reveal')];
+  items.forEach((el,i) => setTimeout(() => el.classList.add('in'), 70*i));
+  // roll numbers + grow bars once the first row is visible
+  setTimeout(() => {
+    document.querySelectorAll('#results .buyer-pct').forEach(el => rollNum(el, +el.dataset.pct, '%'));
+    document.querySelectorAll('#results .ro .rn').forEach(el => rollNum(el, +el.dataset.pct));
+    document.querySelectorAll('#results .fill').forEach(el => el.style.right = (100 - +el.dataset.w) + '%');
+    document.querySelectorAll('#results .mech-bar i').forEach(el => el.style.transform = `scaleX(${el.dataset.s})`);
+  }, 180);
+}
+
+$('#run').onclick = run;
+msg.addEventListener('keydown', e => { if((e.metaKey||e.ctrlKey) && e.key==='Enter') run(); });
+if(location.hash === '#auto') run();
+</script>
+</body>
+</html>
