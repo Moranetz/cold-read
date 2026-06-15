@@ -1,0 +1,8 @@
+[project]
+name = "cold-read"
+version = "1.0.0"
+requires-python = ">=3.11"
+dependencies = ["numpy>=1.26"]
+
+[tool.vercel]
+entrypoint = "api.index:app"
