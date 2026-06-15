@@ -142,9 +142,9 @@
 
 <main class="wrap">
   <div class="eyebrow">Cold Read</div>
-  <h1>Read the <b>buyer</b>, not just the <b>email</b>.</h1>
-  <p class="lede">Most outbound tools personalize the merge fields. This one scores the persuasion mechanics — paste a cold message and see how five buyer archetypes are predicted to react before you hit send.</p>
-  <p class="byline">An instrument by Marion Moranetz · built on the <a href="https://github.com/Moranetz/Persuasion-Max" target="_blank" rel="noopener">Persuasion-Max</a> engine — offline &amp; deterministic.</p>
+  <h1>Your cold email lands differently on <b>every buyer</b>.</h1>
+  <p class="lede">Most outbound tools personalize the merge fields. This one scores the persuasion mechanics. Paste a cold message and see how five buyer archetypes are predicted to react before you hit send.</p>
+  <p class="byline">An instrument by Marion Moranetz, built on the <a href="https://github.com/Moranetz/Persuasion-Max" target="_blank" rel="noopener">Persuasion-Max</a> engine. Offline and deterministic.</p>
 
   <section class="surface composer">
     <textarea id="msg" spellcheck="false" placeholder="Paste your cold email or LinkedIn opener…"></textarea>
@@ -160,7 +160,7 @@
   <section id="results"></section>
 
   <p class="foot" id="foot" style="display:none">
-    Predictions are <b style="color:var(--ink56);font-weight:600">model-internal and directional</b> — the engine scores how a message maps to each archetype's appraisal profile, offline and deterministically. It is not a guarantee of real reply rates. Method, weights, and calibration: <a href="https://github.com/Moranetz/Persuasion-Max" target="_blank" rel="noopener">Persuasion-Max</a>.
+    Predictions are <b style="color:var(--ink56);font-weight:600">model-internal and directional</b>. The engine scores how a message maps to each archetype's appraisal profile, offline and deterministically. It is not a guarantee of real reply rates. The model carries 302 provenance-labeled weights, calibrated on a 126K-sample evaluation across two corpora. Full method lives in <a href="https://github.com/Moranetz/Persuasion-Max" target="_blank" rel="noopener">Persuasion-Max</a>.
   </p>
 </main>
 
@@ -227,7 +227,7 @@ function render(d){
         <span class="mech-bar"><i data-s="${Math.min(1,m.score/100)}"></i></span>
         <span class="mech-name">${esc(m.name)}</span>
         <span class="mech-cat">${esc(m.category)} · ${esc(m.intensity)}</span></div>`).join('')
-    : `<div class="mech-empty">No clear persuasion mechanics firing — the message reads as flat information.</div>`;
+    : `<div class="mech-empty">No clear persuasion mechanics firing. The message reads as flat information.</div>`;
 
   const fix = d.fix ? `<div class="fix">
       <div class="fix-delta">+${d.fix.delta_reply}<span style="font-size:15px"> pts</span></div>
@@ -244,7 +244,7 @@ function render(d){
     </div>
     <div class="surface block reveal">
       <div class="block-h"><span class="t">How five buyers read the same message</span><span class="n">predicted reply</span></div>
-      <div class="block-sub">One email. Five appraisal profiles. Where the bars diverge is where targeting beats volume.</div>
+      <div class="block-sub">The same email meets five different appraisal profiles. The bars show where they diverge.</div>
       ${buyers}
     </div>
     <div class="surface block reveal">
