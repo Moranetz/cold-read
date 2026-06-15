@@ -12,7 +12,7 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(ROOT, "api"))
 import engine_adapter  # noqa: E402
 
-PUBLIC = os.path.join(ROOT, "public")
+PUBLIC = ROOT  # static served from repo root (index.html lives here, mirrors Vercel)
 PORT = int(os.environ.get("PORT", "8000"))
 
 
